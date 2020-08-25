@@ -14,25 +14,24 @@ the DOM directly. Instead, we use the Redux pattern to have our store hold and
 update our state, and we then have React display that state. We want to continue
 with this pattern here.  
 
-Our goal this time is to have a button next to each list element with the todo;
-such that when a user clicks on that button, the list element will be removed.
-In implementing this, remember that the `Todos` component displays the current
-list of todos, if we remove a todo from the store's state, the display of that
-todo should be removed.
+For this code along, we will continue to work on our Todo application. Our goal 
+this time is to add a delete button next to each todo in the list. When a user 
+clicks on the delete button for a todo, that todo should be removed from the 
+store's state and the DOM should rerender to show the shortened list.
 
 ## Deleting A Todo
 
-To delete a todo we should add a button that when clicked, dispatches an action
-telling the store to delete a specific todo. How we tell the store which todo to
-delete, we'll figure out at the end. For now let's add in the button, and have
-it call a method that dispatches a delete action when clicked.  
+To implement our delete button, we will create an event handler that dispatches 
+a delete action when the button is clicked. Eventually, we'll need to figure out
+how to tell the store which todo to delete. For now, though, let's add in the 
+button and get the handler for the button's click event set up.
 
 #### Modifying our TodosContainer
 
-Sticking with our container vs presentational set up, we don't want to load our
-presentational Todo component up with logic. Meanwhile, TodosContainer is where
-we're connected to __Redux__, so let's write in a new `mapDispatchToProps()` function
-to include an action:
+Recall that we set up Todo as a presentational component and connected the
+TodosContainer to __Redux__. To stick with this organization, let's write a 
+new `mapDispatchToProps()` function in TodosContainer to return a delete 
+action:
 
 
 ```javascript
@@ -69,10 +68,10 @@ const mapDispatchToProps = dispatch => {
 export default connect(mapStateToProps, mapDispatchToProps)(TodosContainer);
 ```
 
-Now, TodosContainer will have access to `this.props.delete`, which can take in
-an argument and send it as the action's `payload`. We can then _pass_
-`this.props.delete` down to Todo, so that each Todo component rendered will have
-access to our 'DELETE_TODO' action.
+Now, TodosContainer will have access to `this.props.delete`, which takes in the
+todo text as an argument and sends it as the action's `payload`. 
+
+Next, we need to _pass_ `this.props.delete` down to Todo, so that each Todo component rendered will have access to our 'DELETE_TODO' action:
 
 
 ```js
@@ -82,11 +81,11 @@ renderTodos = () => this.props.todos.map((todo, id) => <Todo delete={this.props.
 
 #### Modifying the Todo Component
 
-Todo is receiving `this.props.delete`, so let's update the component a little
-and incorporate a button:
+Now that `Todo` is receiving `this.props.delete`, let's add our button and get it
+hooked up:
 
 ```js
-import React from 'react'
+import React from 'react';
 
 const Todo = props => {
   return (
@@ -99,10 +98,12 @@ const Todo = props => {
 export default Todo;
 ```
 
-When we click the button we want to be able to delete this particular todo. At
-the moment, our todos are just strings, stored in an array. Since that is all we
-have to work with, we add an `onClick` attribute to the new button. To keep this
-component small, we can provide an anonymous function in-line:
+When we click the button next to a given todo we want that specific todo to be 
+removed, so let's add an `onClick` attribute to the delete button. Recall that, 
+at the moment, our todos are just strings stored in an array. That's all we have 
+to work with for now, but we'll change that a bit later. 
+
+To keep this component small, we can provide an anonymous function in-line:
 
 ```js
 <div>
@@ -112,24 +113,24 @@ component small, we can provide an anonymous function in-line:
 
 So, what is happening here? We're providing a definition for an anonymous
 function. _Inside_ the definition, we're calling `props.delete`, and passing in
-the only other prop available, `props.text`.
+`props.text` as the argument. When the delete button is clicked, back in our 
+connected TodosContainer the value of `props.text` is passed into our dispatched 
+action as the payload.
 
-Back in our connected TodosContainer, when this delete button is clicked, the
-value of `props.text` is passed into our dispatched action as the payload.
-
-
-There is a `console.log` in our reducer that displays actions. Clicking the
-delete button should log an action with the todo's text content as the payload.
+Let's boot up the app and check out what we've done so far. There is a 
+`console.log` in our reducer that displays actions. If you create a todo then 
+click the delete button, you should see an action logged in the console that has 
+the todo's text content as the payload.
 
 Ok, now we have the ability to dispatch an action to the reducer from each Todo!
 
 ## Tell the Store Which Todo to Delete
 
-Our todos are stored as strings in an array. There are a number of ways to
-remove a specific string from an array, but one of the more brief options is to
-use `filter`. By adding a second case to our `manageTodo` reducer, we can write
-a `filter` that returns every todo that _doesn't_ match what is contained in
-`action.payload`:
+Because our todos are stored as strings in an array, to delete a todo, we need 
+to find a way to remove a specific string from an array. One option is to use 
+`filter`. Let's add a second case to our `manageTodo` reducer; in it, we'll 
+write a `filter` that returns every todo that _doesn't_ match what is contained 
+in `action.payload`:
 
 ```js
 export default function manageTodo(state = {
@@ -157,14 +158,13 @@ disappear!
 There is a problem though. What if you have multiple todos with the same text?
 With this set up, every todo that matches `action.payload` will be filtered out.
 
-To get around this, instead of filtering just text, it would be better if we
-gave our Todos specific IDs.
+To fix this, we can give our Todos specific IDs and filter on those instead.
 
 #### Give each Todo an id
 
-A Todo should have an id the moment it gets created. So, we know that our
-reducer creates the Todo when a CREATE_TODO action is dispatched. Let's update
-the code in there so that it also adds an id.
+A Todo should have an id the moment it gets created. Since the Todo is created in 
+our reducer when a CREATE_TODO action is dispatched, let's update that code so 
+that it also adds an id.
 
 ```javascript
 // ./src/reducers/manageTodo.js
@@ -193,12 +193,13 @@ export default function manageTodo(state = {
 }
 ```
 
-Using `uuid()` will generate a long random string each
-time a todo is created. Now, instead of just storing an array of strings in our store, 
-we'll be storing an array of objects.
+We are using the `uuid` node package to generate an id each time a todo is created; 
+don't forget to import it at the top of the file. Now, instead of just storing an 
+array of strings in our store, we'll be storing an array of objects, each of which 
+has an id and the todo text.
 
-This causes a problem 'downstream', though: we need to update our TodosContainer
-to pass the correct content.
+Next we need to update our TodosContainer and Todo component to finish hooking up
+our delete action.
 
 #### Update TodosContainer
 
@@ -210,16 +211,20 @@ renderTodos = () => {
 }
 ```
 
-The change is minimal, but this set up is actually better. Previously, `key` was
-based off the _index_ provided by `map`. Now its using our randomly generated
-ID, and is less prone to errors in the virtual DOM. We'll need both `todo.id`
-and `todo.text` to be passed into Todo so we pass both down as the object,
-`todo`.
+The change is small, but this setup is definitely better. Previously, `key` was
+based off the _index_ provided by `map` which is not the best approach. Now it's 
+using our randomly generated ID, and is less prone to errors in the virtual DOM. 
+
+The other change is that we are now passing the todo *object* as a prop rather than
+just the text. This will enable us to access both `todo.id` and `todo.text` in our 
+Todo component.
 
 #### Update the Todo Component
 
-Now that we've got `todo.id`, we can modify the Todo component to use `props.todo.id`
-on click:
+Next, we need to modify the Todo component to work with the todo *object*. To do 
+this, we will render `props.todo.text` (instead of `props.text`) and pass 
+`props.todo.id` (instead of `props.text`) as the argument to our delete function 
+when the button is clicked:
 
 ```js
 import React from 'react'
@@ -235,13 +240,13 @@ const Todo = props => {
 export default Todo;
 ```
 
-Now, when `props.delete` is called, an action is dispatched that contains an
-_id_ only as its payload.
+Now, when `props.delete` is called, an action is dispatched that contains the _id_ 
+as its payload rather than the text.
 
 #### Updating `DELETE_TODO` in the Reducer
 
-Now that we're passing an _id_ to `props.delete`, we need to modify our reducer
-once more:
+Finally, now that we're passing an _id_ to `props.delete`, we need to make one 
+more tiny change to our reducer:
 
 ```js
 case 'DELETE_TODO':
@@ -249,8 +254,8 @@ case 'DELETE_TODO':
   return {todos: state.todos.filter(todo => todo.id !== action.payload)}
 ```
 
-Instead of comparing `todo` with `action.payload`, now that `todo` is an object,
-we want to match `todo.id` with the payload.
+Now that `todo` is an object and we're passing the id as the payload, we need 
+to match `todo.id` with the payload instead of `todo`.
 
 With this final change, todo objects can be added and deleted, each with their
 own unique id!
@@ -259,6 +264,6 @@ own unique id!
 
 Ok, so in this lesson we covered how to delete a specific Todo. To implement
 this, we gave each Todo a unique id, and then made sure we passed that id into
-each Todo component. Then we made sure to send along that information when
-dispatching an action via `props.delete`. Finally, we had our reducer update the
-state by filtering out the Todo to be deleted.
+each Todo component. Then we sent along that information when dispatching an 
+action via `props.delete`. Finally, we had our reducer update the state by 
+filtering out the Todo with the id that was passed as the action's payload.

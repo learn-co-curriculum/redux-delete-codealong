@@ -89,9 +89,9 @@ import React from 'react';
 
 const Todo = props => {
   return (
-    <div>
+    <li>
       <span>{props.text}</span><button>DELETE</button>
-    </div>
+    </li>
   )
 }
 
@@ -106,9 +106,9 @@ to work with for now, but we'll change that a bit later.
 To keep this component small, we can provide an anonymous function in-line:
 
 ```js
-<div>
+<li>
   <span>{props.text}</span><button onClick={() => props.delete(props.text)}>DELETE</button>
-</div>
+</li>
 ```
 
 So, what is happening here? We're providing a definition for an anonymous
@@ -231,9 +231,9 @@ import React from 'react'
 
 const Todo = props => {
   return (
-    <div>
+    <li>
       <span>{props.todo.text}</span><button onClick={() => props.delete(props.todo.id)}>DELETE</button>
-    </div>
+    </li>
   )
 }
 

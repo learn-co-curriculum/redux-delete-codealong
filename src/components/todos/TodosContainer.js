@@ -8,9 +8,9 @@ class TodosContainer extends Component {
   
   render() {
     return(
-      <div>
+      <ol>
         {this.renderTodos()}
-      </div>
+      </ol>
     );
   }
 };
